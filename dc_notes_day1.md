@@ -20,7 +20,7 @@
 10. When should I add reset? When shouldnt?
 > In datapath components, reset can be omitted. However, for controller where initial value is important, reset is a must.
 11. Why should we add register delays in main design?
-> The wave form simulation in RTL would be similiar if you add delays to them.
+> The wave form simulation in RTL would be similiar to gate-level if you add delays to them. Makes debugging easier.
 > When adding memory IPs, memory has their own delays, if you dont specify the delays in design, dc might not simulate the design for you.
 If you dont want delays, but want to use memory IP, add the following command
 ```bash
