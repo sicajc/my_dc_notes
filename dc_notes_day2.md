@@ -18,7 +18,7 @@
 9. How is fpga used in industry? What do you mean by the design is verified on an FPGA? Should I consider efficiency on an FPGA?
 > FPGA is used for FUNCTIONAL Verification only. We actually dont care about the efficieny running on fpga, we cares only about functional correctness. Main optimization part lies in ASIC-flow. FPGA is only used for verification.
 10. How do you think about CHISEL HDL?
-> I think for student, you had better look for the requirement posed by companies, first finish learning them then consider researching such topics. Unless you want to do research in academic, i dont suggest you learning it.
+> I think for student, you had better look for the requirement posed by companies, first finish learning them then consider researching such topics. Unless you want to do research in academic, i dont suggest you learning it. For now systmeVerilog and Verilog also some C-programming and python should be enough for you.
 
 
 # PVT(Process,Voltage,temperature) MODELS
@@ -47,14 +47,18 @@
 - If hold time cannot be met, use inverter chains, fast.db.
 
 # Tape out tips about CHIP.v
-1. If you want to tape out, you should synthesize your design with I/O pad around your top. Synthesize your design from the CHIP.v allows for easier synthesis constraint setting also it allows tape out. Synthesizing from top.v is also find however may cause some nusances.
+1. If you want to tape out, you should synthesize your design with I/O pad around your top. Synthesize your design from the CHIP.v allows for easier synthesis constraint setting also it allows tape out. Synthesizing from top.v is also fine however may cause some nusances.
 2. When using ICC2 or Innovus, knowing what the numerical value the tool gives you is the most important tasks.
 3. PDIDGZ is the TSMC Input port and PDO16CDG is the Output port for pad.
-4. Below table shows the delay number of output ports, corresponding to different allowable frequency. To run at higher speed. Higher number port should be selected.
+4. Below table shows the delay number of output ports, corresponding to different allowable frequency. i.e.
+```
+        PDO16CDG, the 16 in it
+```
+- To run at higher speed.Higher number port should be selected.
 
-|2,4,8          | 12,16,24 |
-|       ---     |  ---|
-|  10 Mhz           | 100 Mhz  |
+|2,4,8          |             12,16,24 |
+|       ---     |                   ---|
+|  10 Mhz           | 100 Mhz or more  |
 # WLM(Wire load model)
 1. To search for wire-load model document. See the slow.lib, lots of info can actuualy be found within this file. Simply search wire load in it to find the wire load for different gate or design.
 
@@ -136,5 +140,96 @@ After renaming, the CLK1 is no longer pins, but a name of your clk.
 2. Frequency selection for a certain block is allowed, but require certain commands to be set for DC.
 
 # Power Reduction technique
-1. Clock Gating can actually be handled automatically by dc if you give it the constraint. You dont have to generate the latch yourself at all.
-2.
+1. Clock Gating can actually be handled automatically by dc if you give it the constraint. You dont have to generate the latch yourself at all. Just give dc the command it will do it for you.
+```verilog
+    assign gclk = clk & Enable;
+    always@(posedge gclk)
+    begin
+        if(reset)
+        begin
+            data <= 0;
+        end
+        else
+        begin
+            data <= data + 8'b1;
+        end
+    end
+```
+Then simply gives command to dc, it would auto serach all clk gating cells.
+```
+        replace_clock_gates
+        compile
+```
+To serach for number of CG(CLK GATING) cells type
+```
+    report_clock_gating -gating_elements
+```
+
+## Gate level dynamic power optimization
+0. In industry, advanced process technology is used, in such implementation, leakage power starts to dominates and becomes a serious problem, thus one of the low power technique is to replace some cells with worse or better cells, instead of using only 1 type of cell.
+1. Actually there exists different cell libraries. Except the common standard one, dc is also smart enough to replace your design with faster or slower cells when needed.
+- Usualy we have HVT,LVT,RVT cells (High $V_t$ cell) (Low $V_t$ cell) and regular one.
+- HVT has lower leakage power but longer delays.
+- LVT has larger leakage power but low delay.
+2. These are generally not a problem in academic however serious problem in industry, and a great technique to reduce the power and improve the performance of your ckt.
+3. It replaces the cell by saving power on Non-critical paths.
+
+```
+    compile
+
+    set_leakage_optimization true
+    compile -inc
+```
+- -inc means keep my design but further improve it without resynthesizing again.
+- To search for leakage power of every cell, search in the slow.lib and search keyword cell leakage power.
+- Leakage power can be reduced by an astonishing 75% with this method!!!!
+
+```
+        report_threshold_voltage_group
+```
+- To call the cells get replaced by HVT or LVT.
+
+## Gate counts anaylsis
+1. In industry or design are estimation. We usually use $um^2$ for units. However sometimes we need gate counts for our design as design metrics. How can we get it?
+```
+    sizeof_collection [get_cells -hier *]
+```
+
+# Important notes to prevent your circuit from failing
+1. The constraint you give for timing, skew, uncertatinty, WLM, fan_out, input_delay etc.. MUST met the range of table index within the slow.lib. Otherwise, even if synthesis can be performed, the chip you tape out cannot work at all!!! So you had better first check if the constraint value you keyed is within the range. To serach for index, simply type index for the cell you want to serach. Usually they are within a certain value range.
+
+# SDC runtime in DC-NXT
+In large design, removing unnecessary constraints can save you LOTS OF TIME, the following command removes those unneeded constraints away and optimizes the timing for you. This works only in DC-NXT. The DC version2.
+```
+    check_timing -sdc_runtime
+    source sdc_runtime.log.tcl
+    compile_ultra
+```
+
+```
+    set sdc_runtime_analysis_enable true
+```
+
+# Clock Margin
+1. In industry, we usually gives our own circuit a 10% clk margin. i.e. even if I want my circuit to run at 100 Mhz, we would like it to be made at 110 Mhz s.t. things can be easier for the APR and layout tools to work. Used to preserve margin and gives flexibility in design.
+<br /> dc tools actually automate this
+
+```
+ set_timing_derate -late 1.10 -cell_delay [get_cells -hier *] #Setup time 110%
+ set_timing_derate -early 1.00 -cell_delay [get_cells -hier *] #Hold time 100% No need to change
+```
+Note this command also needed to be given during the APR flow to make clock margin preserved.
+Flow as the following
+- set_timing_derate -> place -> CTS -> Route -> Report_timing -> reset_timing_derate -> report_timing to see the difference.
+
+# TeamWorking clock margin for outputs and inputs
+1. If you are working with someone else, and you dont know how to distribute the delay between your inputs delay and other people's output delays. Usually picking a 50% clock margin for each person is a good idea. i.e. if you want clock delay to be 10 ns. Then 5 ns would be given to person A's output logic, another 5 would be your allowable input delay logic.
+
+
+# APR constraints file
+- Before going into APR flow, although APR and DC shares the same xdc file, the following constraints MUST BE REMOVED!!!
+1. WLM constraints
+2. DONT_TOUCH_NETWORK
+3. FIX_HOLD
+4. IDEAL_NETWORK
+- If you dont remove these, the APR tool cannot optimize and place cell for you.
