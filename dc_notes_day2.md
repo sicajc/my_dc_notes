@@ -100,7 +100,8 @@ After renaming, the CLK1 is no longer pins, but a name of your clk.
 3. When synthesizing, first use ideal_clk network. No delay exists during synthesis! Set it only during the APR phase.
 > Skew can actually be good sometime, there exists good skew and bad skew. Good skew can be used to extend slack.
 
-4. CCD mode(Concurrent clock and data optimization), combine the analysis of clock tree nad synthesis together which allows even faster design.
+#  CCD mode in DC-NXT(DC 2.0)
+- CCD mode(Concurrent clock and data optimization), combine the analysis of clock tree nad synthesis together which allows even faster design.
 
 ## Model source latency
 1. When teamWorking, we have to ask project leader about the clock delays we cannot know in the modules that is worked by other people, or needs to ask for the clock delays after the clk rate is being double or decremented.
