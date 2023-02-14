@@ -128,7 +128,7 @@ After renaming, the CLK1 is no longer pins, but a name of your clk.
 1. Remember to -balance_group otherwise you will get horrendous clk delays out of no where.
 
 ## Elminating False Path
-1. In industry standard, they usually write the following, where N is and arbitrarily selected clocks. It depends for your design.
+1. In industry standard, they usually write the following to prevent false path from generating, where N is the arbitrarily selected clocks. It depends on your design.
 
 ```
     set_multicycle_path -setup N   -from {A} -through {C} to {OUT}
