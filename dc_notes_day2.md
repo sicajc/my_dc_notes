@@ -67,7 +67,14 @@
 <br /> $delay = Delay_{cell} + Delay_{net}$
 <br /> Usually $Delay_{cell}$ dominates the whole delay, however, in advanced technology(smaller than 40nm), $Delay_{net}$ actually contributes to a large portion of delay. So the estimation becomes even harder and more inaccurate. How to solve it?
 
-1. Layout principle. the main IP blocks should be places in the edges or corners to allow other cells to connect with each other without blocking them.
+4. Layout principle. the main IP blocks should be places in the edges or corners to allow other cells to connect with each other without blocking them.
+
+5. To change output or input load
+```
+    set_load 10 [all_outputs]
+            or
+    set_load 40 [all_inputs]
+```
 
 # SPG and Fusion Compiler
 1. SPG, Perform layout and synthesis at the same time. To solve the inaccurate wire load model and placement problem. Makes design accurate cell model easier.
