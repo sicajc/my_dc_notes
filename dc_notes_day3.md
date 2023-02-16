@@ -208,6 +208,7 @@ Before saving into .sdf & syn.v
 |       ---         |         ---            |           ---|
 |  0.95               |       0.8             |  0.65       |
 
-These extra space would be used to implement the power rail of memories and other IP black boxes.
+- These extra space would be used to implement the power rail of memories and other IP black boxes.
+
 2. How many buv/inv are used?
 > If there are too many buffers, consider using the multicycle command. Since dc is trying to insert buffers to combat the hold time violations on clk tree.
