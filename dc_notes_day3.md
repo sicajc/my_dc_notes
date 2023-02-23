@@ -10,6 +10,7 @@
 2. Compile high may sometimes unable to converges.
 3. Before compiling, false path problem must be resolved, otherwise compilation process cannot converges.
 4. compile_ultra may sometimes leads to functional errors.
+
 ## compile_ultra
 1. compile_ultra can only works in GTECH level, it cannot work at gate-level. So your synthesized .ddc file might not be able to benefit from it.
 2. These command should not be used together.
@@ -17,11 +18,11 @@
     compile_ultra -t (timing best) 20% timing improvement
     compile_ultra -a (area best)  40% area improvement
 ```
-3. Suggest dont do compile -gate_clock, gate level sim will have a high chance of failing.
+1. Suggest dont do compile -gate_clock, gate level sim will have a high chance of failing.
 
-4. When using compile_ultra, dont use -no_autoungroup command, suggest reread the design, then use compile ultra.
+2. When using compile_ultra, dont use -no_autoungroup command, suggest reread the design, then use compile ultra.
 
-5. We can retime the circuit using d_ff and compile_ultra
+3. We can retime the circuit using d_ff and compile_ultra
 - This helps resolve timing violation auto performing Retiming techniques to your circuit.
 ```
     compile_ultra -retime
@@ -30,7 +31,7 @@
 ```
     optimize_registers
 ```
-6. We only would like to retime on a smaller bounded cell, not the whole design. If you try to retime your WHOLE circuit, the VLSI architecture of your circuit might get destroyed. So we usually do retiming locally.
+1. We only would like to retime on a smaller bounded cell, not the whole design. If you try to retime your WHOLE circuit, the VLSI architecture of your circuit might get destroyed. So we usually do retiming locally.
 
 ## Boundary Optimization
 1. Removing unused or unconnected ports
@@ -85,7 +86,7 @@ Note the power analysis given by dc is already pretty close to reality. The powe
 # Memory Compiler
 1. the number of words in memory must be a multiple of 2
 2. The frequency of memory is usually set to 1, it is used for power analysis, s.t. we can further know the ring width for our memory.
-3. Ring Width(The powerRail of your memory). Since $P=CV^2f$ , we already hold our $f=1$,average power of your circuit is usually around  18mW,typical current flow of your circuit is around 10(mA) yet Metal 1 of TSMC can only withstand $20(mA)$ of instant current. Remember that is ON AVERAGE. In peak condition, so we usually consider the ability of Metal 1 to widstand current to be 10 time smaller than the original value, i.e. estimate it to withstand 2(mA) only. Thus our Ring Width, the power rail of our memory should be $10/2=5$ thus choose it to be 5. If the ring width is wrong, your memory might just broke down after you tape out.
+3. Ring Width(The powerRail of your memory). Since $P=CV^2f$ , we already hold our $f=1$,average power of your circuit is usually around  18mW,typical current flow of your circuit is around 10(mA) yet Metal 1 of TSMC can only withstand $20(mA)$ of instant current. Remember that is ON AVERAGE. In peak condition, the current is usually much larger than 20, so we usually consider the ability of Metal 1 to widstand current to be 10 time smaller than the original value, i.e. estimate it to withstand 2(mA) only. Thus our Ring Width, the power rail of our memory should be $10/2=5$ thus choosing it to be 5. If the ring width is wrong, your memory might just get broke down by current after you tape out.
 4. The max size of your memory is 16384. Anything larger is not buildable.
 5. When using ROM, the data writing rule must be followed, i.e. if you call a 128x16 rom, the data your prepared must also be 128x16. Even if you only have 100 datas, you still need to zeropad the remaining 28 spaces, otherwise you cannot write data into rom.
 6. To search for metal Info, find phy_lib, find M1 to serach for the maximum allowable current of the metal layer.
@@ -111,8 +112,8 @@ Note the power analysis given by dc is already pretty close to reality. The powe
 Can be set on memory.
 
 ## Before APR
-1. prepare verilog file and sdc
-2. Dont use ddc, since dont touch network and ideal network => CTS dead
+1. prepare verilog file and sdc to do APR
+2. Dont use ddc for APR, since dont touch network and ideal network => CTS dead
 3. Save ddc after synthesis no matter what!
 
 ## Add ROM cell into Synopsys
